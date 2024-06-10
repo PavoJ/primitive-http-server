@@ -1,37 +1,7 @@
 #!/usr/bin/env python3
 import socket
 import argparse
-import sys
-from typing import Callable
-import threading
 import webserver
-
-
-def handle_http_request(conn_socket: socket.socket):
-    MAX_BUF_SIZE = 4096
-    req_raw = conn_socket.recv(MAX_BUF_SIZE).decode("ascii")
-    print(webserver.parse_http_request(req_raw))
-
-
-def accept_and_split(
-        socket: socket.socket,
-        handler: Callable[[socket.socket], None]):
-    """
-    Accepts all incoming connections on socket indefinitely
-    (unless a KeyboardInterrupt is received),
-    handling them by generating separate threads
-    """
-    try:
-        while True:
-            conn = socket.accept()
-            threading.Thread(
-                target=handle_http_request,
-                args=(conn[0],),
-                daemon=True,
-            ).start()
-    except KeyboardInterrupt:
-        print("\nExiting gracefully...")
-
 
 def parse_args() -> argparse.Namespace:
     """
@@ -58,7 +28,7 @@ def main():
     listen_addr = (arg_namespace.host, arg_namespace.port)
 
     with socket.create_server(listen_addr) as server_socket:
-        accept_and_split(server_socket, handle_http_request)
+        webserver.accept_and_split(server_socket, webserver.handle_http_request)
 
 
 if __name__ == "__main__":
