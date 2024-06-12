@@ -8,7 +8,7 @@ class HTTPConsts:
     MAX_REC_BUF_SIZE = 4096
 
 
-def handle_http_request(conn_socket: socket.socket):
+def handle_http_request(conn_socket: socket.socket, htdocs_dir: str):
     """
     Handles single http request coming from conn_socket.
     """
@@ -18,17 +18,19 @@ def handle_http_request(conn_socket: socket.socket):
 
 def accept_and_split(
         socket: socket.socket,
-        handler: Callable[[socket.socket], None]):
+        handler: Callable[[socket.socket, tuple], None],
+        *args):
     """
     Accepts all incoming connections on socket indefinitely
     (unless a KeyboardInterrupt is received),
     handling them by generating separate threads
     """
+    handler_target : Callable[[socket.socket], None] = lambda s: handler(s, *args)
     try:
         while True:
             conn = socket.accept()
             threading.Thread(
-                target=handler,
+                target=handler_target,
                 args=(conn[0],),
                 daemon=True,
             ).start()
