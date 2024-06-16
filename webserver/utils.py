@@ -4,8 +4,8 @@ import re
 
 class HTTPReg:
     HTTPVER_EXPR = r'HTTP/(?P<httpver>[\d\.]+)'
-    PARAMETER_RE = re.compile(r'([\w-]+):\s*(.*)\n?')
-    PARAMETER_FMTS = "{name}: {value}\n"
+    PARAMETER_RE = re.compile(r'([\w-]+):\s*([^\n]*)\r\n')
+    PARAMETER_FMTS = "{name}: {value}\r\n"
     REQ_RE = re.compile(
         r'^(?P<reqtype>\w+)\s+(?P<path>.*)\s+' + HTTPVER_EXPR + r'\s+')
     RES_RE = re.compile(
