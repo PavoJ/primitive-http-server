@@ -48,7 +48,7 @@ def generate_http_response(
         protocol_version: str,
         status_code: int,
         status_message: str,
-        additional_params: dict,
+        additional_params: list[tuple[str, str]],
         body: bytes = b"") -> bytes:
     """
     Encodes an http response.
