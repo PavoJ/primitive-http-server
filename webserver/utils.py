@@ -51,16 +51,16 @@ def generate_http_response(
         additional_params: list[tuple[str, str]],
         body: bytes = b"") -> bytes:
     """
-    Encodes an http response.
-    the additional_params dict must contain a
-    'parameters' key containing a list of tuple
-    pairs denoting the parameter's name and value, respectively.
+    Encodes an http response. the additional_params dict must contain a
+    'parameters' key containing a list of tuple pairs denoting the parameter's
+    name and value, respectively.
     """
-    response_str_list = list()
-    response_text.append(HTTPReg.RES_HEADER_FMTS.format(
+    response_str_list : list[str] = list()
+    response_str_list.append(HTTPReg.RES_HEADER_FMTS.format(
         ver=protocol_version,
         statuscode=status_code,
-        statusmsg=status_text))
-    for name, value in additional_params.items():
-        response_text.append(HTTPReg.PARAMETER_FMTS.format(name, value))
-    return bytes.join((str.join(response_str_list).encode('ascii'), body))
+        statusmsg=status_message))
+    for param in additional_params:
+        name, value = param
+        response_str_list.append(HTTPReg.PARAMETER_FMTS.format(name, value))
+    return ''.join(response_str_list).encode('ascii') + b'\r\n' + body

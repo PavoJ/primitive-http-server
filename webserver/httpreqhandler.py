@@ -9,20 +9,27 @@ class HTTPConsts:
     MAX_REC_BUF_SIZE = 4096
 
 
-def get_resource(resource_path: str) -> tuple[int, bytes]:
+def get_resource(htdocs_dir: str, resource_path: str) -> tuple[int, str, bytes]:
     """
-    Returns tuple containing status code and resource contained in resource_path.
+    Returns tuple containing status code, status message and resource contained in resource_path.
     """
-    pass
+    resource_path = resource_path if resource_path != '/' else '/index.html'
+    # This method of creating a path is very dangerous and easily exploitable.
+    # Writing a better solution is beyond the scope of this work
+    full_path = os.path.join(htdocs_dir, '.'+resource_path)
+    try:
+        with open(full_path, 'rb') as f:
+            return (200, 'OK', f.read())
+    except FileNotFoundError:
+        return (404, 'Not Found', b'')
+
+
 def handle_http_request(conn_socket: socket.socket, htdocs_dir: str):
     """
     Handles single http request coming from conn_socket.
     """
     req_raw = conn_socket.recv(HTTPConsts.MAX_REC_BUF_SIZE).decode("ascii")
     req = utils.parse_http_request(req_raw)
-    # This method of creating a resource path is very dangerous and prone to trivial exploits.
-    # Writing a better solution is beyond the scope of this work
-    resource_path = os.path.join(htdocs_dir, '.'+req['reqdata']['path'])
 
     res_headers : list[tuple[str, str]] = list()
     res_data : bytes
@@ -31,9 +38,21 @@ def handle_http_request(conn_socket: socket.socket, htdocs_dir: str):
 
     match req['reqdata']['reqtype']:
         case 'GET':
-            res_data = get_resource(resource_path)
+            res_statuscode, res_statusmessage, res_data = \
+                get_resource(htdocs_dir, req['reqdata']['path'])
         case _:
             pass
+
+    res_raw = utils.generate_http_response(
+        '1.1',
+        res_statuscode,
+        res_statusmessage,
+        [],
+        res_data
+    )
+    conn_socket.send(res_raw)
+    conn_socket.close()
+
 
 
 def accept_and_split(
