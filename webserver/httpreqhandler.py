@@ -22,6 +22,8 @@ def get_resource(htdocs_dir: str, resource_path: str) -> tuple[int, str, bytes]:
             return (200, 'OK', f.read())
     except FileNotFoundError:
         return (404, 'Not Found', b'')
+    except OSError:
+        return (500, 'Internal Server Error', b'')
 
 
 def handle_http_request(conn_socket: socket.socket, htdocs_dir: str):
